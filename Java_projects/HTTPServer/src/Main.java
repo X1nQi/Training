@@ -4,11 +4,21 @@ import javax.imageio.spi.ImageInputStreamSpi;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
+    //定义请求方法
+    private static final String[] METHODS = {"GET","POST","PUT","DELETE"};
+    //定义状态码以及状态说明
+    private static final Map<String,String> STATUSCODE_AND_MESSAGE = new HashMap<String,String>(){{
+        put("200","OK");
+        put("404","Not Found");
+        put("500","Internal Server Error");
+        put("301","Found");
+    }};
 
     public static void main(String[] args) throws IOException {
         //服务器持续监听9090端口
@@ -41,6 +51,7 @@ public class Main {
 
                 //生成响应体
                 generateResponse(request, httpSocket);
+
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -112,27 +123,91 @@ public class Main {
 
     //生成响应体并返回给客户端
     private static void generateResponse(Request request,Socket socket) throws IOException {
-         HashMap<String,String> responseHeaders = new HashMap<>(16);
-         responseHeaders.put("Content-Type","text/html");
-         responseHeaders.put("Location","https://www.bilibili.com/");
+        StringBuilder responseStr = new StringBuilder();
+        //处理请求
+        if(!handleResponseLine(request,responseStr)){
+            //处理请求头
+            handleResponseHeader(request,responseStr);
+            //处理请求体
+            handleResponseBody(request,responseStr);
+        }
+        BufferedWriter writerToClient = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        writerToClient.write(responseStr.toString());
+        writerToClient.flush(); // 确保所有数据都被写入
+        socket.close();
 
-         Response response = new Response();
-         response.setHttpVersion(request.getHttpVersion());
-         response.setStatusCode("200");
-         response.setStatusMessage("OK");
-         response.setResponseHeaders(responseHeaders);
-         response.setResponseBody("Hello HTTP Client");
-         StringBuilder responseStr = new StringBuilder();
-         responseStr.append(response.getHttpVersion()+" "+response.getStatusCode()+" "+response.getStatusMessage()+"\n");
-         responseStr.append("Content-Type: "+response.getResponseHeaders().get("Content-Type")+"\n\n");
-         responseStr.append(response.getResponseBody());
-         System.out.println("\n\n响应体生成完成");
-         System.out.println(responseStr.toString());
-         BufferedWriter writerToClient = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-         writerToClient.write(responseStr.toString());
 
-         writerToClient.flush(); // 确保所有数据都被写入
-         socket.close();
+    }
+
+    //处理请求行
+    private static boolean handleResponseLine(Request request,StringBuilder responseAll){
+        //处理请求行是在处理什么？
+        //1. 处理请求方法
+        //2. 处理请求资源地址
+        //返回值判断请求行是否出错，true为出错，false为未出错
+        boolean isExistMethod = false;
+        boolean isExistFile = false;
+        String filePath = "";
+        File requestFile = null;
+
+        //判断方法是否存在
+        for(String method:METHODS){
+            if (method.equals(request.getMethod())){
+                isExistMethod = true;
+            }
+        }
+        //判断资源是否存在:这里做了资源路径的处理
+        if (request.getUri().equals("/") || request.getUri().equals("/index") ||request.getUri().equals("/index.html")){
+            filePath = "./index.html";
+            requestFile = new File(filePath);
+        }else {
+            requestFile = new File('.'+request.getUri());
+        }
+
+        if(requestFile.exists()&&!requestFile.isDirectory()){
+            isExistFile = true;
+            System.out.println("已找到资源文件");
+        }
+        //TODO:编写没有找到方法和没有找到资源时，向客户端返回的响应体
+
+        if(isExistMethod&&isExistFile){//在方法列表中找到请求方法，并且请求的资源存在
+            //添加HTTP版本和状态码&信息
+            responseAll.append(request.getHttpVersion()+" ");
+            responseAll.append("200 "+STATUSCODE_AND_MESSAGE.get("200"));
+            System.out.println("对请求方式和请求资源做出判断：true");
+            return false;//没有错误信息
+        }else {//TODO:其他状态码的匹配
+            return true;
+        }
+    }
+    //处理请求头
+    private static void handleResponseHeader(Request request,StringBuilder responseAll){
+        //TODO:这里可能会用到正则匹配文件类型，暂时定死
+        responseAll.append("Content-Type: text/html\n");
+
+
+    }
+    //处理请求体
+    private static void handleResponseBody(Request request,StringBuilder responseAll){
+        //读取文件的内容，使用字节缓冲流
+        try {
+            String filePath="";
+            BufferedInputStream readFile = null;
+            if (request.getUri().equals("/") || request.getUri().equals("/index") || request.getUri().equals("/index.html")){
+                filePath = "./index.html";
+                readFile= new BufferedInputStream(new FileInputStream(filePath));
+            }else {
+                readFile = new BufferedInputStream(new FileInputStream('.'+request.getUri()));
+            }
+
+            byte[] fileBytes  = new byte[2048];
+            while ((readFile.read(fileBytes)) != -1){
+                responseAll.append("\n"+new String(fileBytes, StandardCharsets.UTF_8));//使用UTF8编码进行读
+                System.out.println("已添加响应体的文件内容");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
 
