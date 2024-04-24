@@ -1,5 +1,9 @@
+import com.sun.source.tree.Scope;
+
 import javax.imageio.spi.ImageInputStreamSpi;
 import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,10 +12,12 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            //测试HTTP请求
-            FileReader httpFile = new FileReader("C:\\Users\\Fixer\\Desktop\\test.txt");
+            //服务器持续监听9090端口
+            ServerSocket serverSocket = new ServerSocket(9090);
+            Socket httpScoket = serverSocket.accept();
+
             //创建缓冲流进行读取文件
-            BufferedReader bufferedReader = new BufferedReader(httpFile);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpScoket.getInputStream()));
             //创建StringBuilder类接收http请求内容
             StringBuilder httpRequestContent = new StringBuilder();
             String line="";
@@ -19,10 +25,10 @@ public class Main {
                 //将读取到的内容添加到httpRequestContent中
                 httpRequestContent.append(line+'\n');//添加换行还原原始字符串
             }
+            System.out.println(httpRequestContent.toString());
 
             //创建Request对象，用于存放解析后的请求信息
             Request request = new Request();
-
             //解析请求行
             decodeRequestLine(httpRequestContent,request);
             //解析请求头
@@ -31,7 +37,7 @@ public class Main {
             decodeRequestBody(httpRequestContent,request);
 
             //生成响应体
-            generateResponse(request);
+            //generateResponse(request);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -58,11 +64,13 @@ public class Main {
                 kv = line.split(":");
                 headers.put(kv[0],kv[1]);
 
-            }else {
+            }else {//请求有请求体的情况
                 //设置请求对象中的请求头信息
                 request.setHeaders(headers);
                 break;
             }
+            //请求没有请求体的情况
+            request.setHeaders(headers);
         } //for end
         System.out.println("请求头解析完成");
         System.out.println(request.getHeaders());
@@ -114,7 +122,7 @@ public class Main {
          responseStr.append(response.getHttpVersion()+" "+response.getStatusCode()+" "+response.getStatusMessage()+"\n");
          responseStr.append("Content-type"+":"+response.getResponseHeaders().get("Content-Type")+"\n\n");
          responseStr.append(response.getResponseBody());
-        System.out.println("\n\n响应体生成完成");
+         System.out.println("\n\n响应体生成完成");
          System.out.println(responseStr.toString());
     }
 }
@@ -161,7 +169,7 @@ class Request{
     }
 
     public HashMap<String, String> getHeaders() {
-        return headers;
+        return this.headers;
     }
 
     public void setHeaders(HashMap<String, String> headers) {

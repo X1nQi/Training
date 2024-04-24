@@ -19,7 +19,7 @@
 
 # 在第二个版本我要做到什么？
 
-现在已经实现了第一个版本，解析HTTP请求，在第二个版本中，我要完成响应HTTP请求
+现在已经实现了第一个版本，解析HTTP请求，在第二个版本中，我要完成响应HTTP请求，此版本任然使用本地文件作为HTTP请求来源
 
 **目标：当接收到了HTTP请求时，在本机输出Hello**
 
@@ -27,4 +27,54 @@
 2. 定义好生成响应体的方法
 
 > 2024年4月24日21:00:33完成第二版本的编写
+
+# 在第三个版本我要做到什么？
+
+第二个版本的生成响应体方法，是不太优雅；纯纯是获取数据并输出在本地，在第三个版本中要使用socket启动服务进行监听，并在本机控制台打印出HTTP请求
+
+目标：从浏览器访问localhost:9090,本机打印请求体的内容
+
+1. 使用Scoket监听9090端口
+2. 将本地文件IO替换为字节流IO
+
+> 2024年4月24日21:57:34完成第三版本的编写
+
+## 遇到的困难
+
+http发送了，但是请求头是null
+
+问题原因：http请求可能有请求体，也可能没有请求体；在处理请求头的代码中，我只写了判断有请求体时的代码，导致第22行的代码不会被运行，在第26加上了设置请求头的语句，在两种情况下都会设置请求头；只不过在有请求体的情况下，请求体会被设置两次，不太优雅。
+
+```java
+private static void decodeRequestHeader(StringBuilder httpRcontent,Request request) throws IOException{
+        //创建一个Map对象，用于存储请求头的信息,并初始化容量
+        HashMap<String,String> headers = new HashMap<>(16);
+        //获取请求的原始数据，解析为字符串数组
+        String[] httpContent = httpRcontent.toString().split("\n");
+
+        //读取请求头信息，每行都是一个键值对，以空行作为请求头的标准
+        String[]kv;//键值对key:values
+        int tag=0;
+        for(String line:httpContent){
+            line = line.trim();//去除字符串两端的空格
+            //判断是否为请求头信息
+            tag++;
+            if (tag == 1){continue;}
+
+            if(!line.equals("")){
+                kv = line.split(":");
+                headers.put(kv[0],kv[1]);
+
+            }else {//请求有请求体的情况
+                //设置请求对象中的请求头信息
+                request.setHeaders(headers);
+                break;
+            }
+            //请求没有请求体的情况
+            request.setHeaders(headers);
+        } //for end
+        System.out.println("请求头解析完成");
+        System.out.println(request.getHeaders());
+    }
+```
 
