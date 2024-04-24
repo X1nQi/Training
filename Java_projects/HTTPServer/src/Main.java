@@ -10,38 +10,41 @@ import java.util.Map;
 
 public class Main {
 
-    public static void main(String[] args) {
-        try {
-            //服务器持续监听9090端口
-            ServerSocket serverSocket = new ServerSocket(9090);
-            Socket httpScoket = serverSocket.accept();
+    public static void main(String[] args) throws IOException {
+        //服务器持续监听9090端口
+        ServerSocket serverSocket = new ServerSocket(9090);
+        while(true) {
+            try {
 
-            //创建缓冲流进行读取文件
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpScoket.getInputStream()));
-            //创建StringBuilder类接收http请求内容
-            StringBuilder httpRequestContent = new StringBuilder();
-            String line="";
-            while((line = bufferedReader.readLine()) != null){//判断读取到的内容是否为空
-                //将读取到的内容添加到httpRequestContent中
-                httpRequestContent.append(line+'\n');//添加换行还原原始字符串
+
+                Socket httpSocket = serverSocket.accept();
+
+                //创建缓冲流进行读取文件
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpSocket.getInputStream()));
+                //创建StringBuilder类接收http请求内容
+                StringBuilder httpRequestContent = new StringBuilder();
+                String line = "";
+                while (!((line = bufferedReader.readLine()).isEmpty())) {//判断读取到的内容是否为空
+                    //将读取到的内容添加到httpRequestContent中
+                    httpRequestContent.append(line + '\n');//添加换行还原原始字符串
+                }
+                System.out.println(httpRequestContent.toString());
+
+                //创建Request对象，用于存放解析后的请求信息
+                Request request = new Request();
+                //解析请求行
+                decodeRequestLine(httpRequestContent, request);
+                //解析请求头
+                decodeRequestHeader(httpRequestContent, request);
+                //解析请求体
+                decodeRequestBody(httpRequestContent, request);
+
+                //生成响应体
+                generateResponse(request, httpSocket);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-            System.out.println(httpRequestContent.toString());
-
-            //创建Request对象，用于存放解析后的请求信息
-            Request request = new Request();
-            //解析请求行
-            decodeRequestLine(httpRequestContent,request);
-            //解析请求头
-            decodeRequestHeader(httpRequestContent,request);
-            //解析请求体
-            decodeRequestBody(httpRequestContent,request);
-
-            //生成响应体
-            //generateResponse(request);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
-
     }
 
     //解析请求头
@@ -107,23 +110,29 @@ public class Main {
         System.out.println(request.getMessage());
     }//method end
 
-    //生成响应体
-    private static void generateResponse(Request request){
+    //生成响应体并返回给客户端
+    private static void generateResponse(Request request,Socket socket) throws IOException {
          HashMap<String,String> responseHeaders = new HashMap<>(16);
          responseHeaders.put("Content-Type","text/html");
+         responseHeaders.put("Location","https://www.bilibili.com/");
 
          Response response = new Response();
          response.setHttpVersion(request.getHttpVersion());
          response.setStatusCode("200");
          response.setStatusMessage("OK");
          response.setResponseHeaders(responseHeaders);
-         response.setResponseBody("Hello");
+         response.setResponseBody("Hello HTTP Client");
          StringBuilder responseStr = new StringBuilder();
          responseStr.append(response.getHttpVersion()+" "+response.getStatusCode()+" "+response.getStatusMessage()+"\n");
-         responseStr.append("Content-type"+":"+response.getResponseHeaders().get("Content-Type")+"\n\n");
+         responseStr.append("Content-Type: "+response.getResponseHeaders().get("Content-Type")+"\n\n");
          responseStr.append(response.getResponseBody());
          System.out.println("\n\n响应体生成完成");
          System.out.println(responseStr.toString());
+         BufferedWriter writerToClient = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+         writerToClient.write(responseStr.toString());
+
+         writerToClient.flush(); // 确保所有数据都被写入
+         socket.close();
     }
 }
 

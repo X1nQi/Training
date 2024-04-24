@@ -78,3 +78,95 @@ private static void decodeRequestHeader(StringBuilder httpRcontent,Request reque
     }
 ```
 
+# 在第四个版本我要做到什么？
+
+第三个版本耽误了好长时间，但是结果终归是好的；对于上个版本出现的问题来自于对http请求和代码读取的不熟练，这次遇到了，下次就记住了。在第四个版本我要做到对客户端返回数据
+
+**目标：客户端请求服务器，服务器通过返回Hello HTTP Client给网页**
+
+1. 使用BufferedWriter缓冲流向客户端发送数据
+2. 在通信完关闭Socket连接
+
+> 2024年4月25日01:02:45第四个版本完成
+
+## 尝试的事&发现的问题
+
+我在看响应头相关的属性时，发现了`Location`这个属性，可以让客户端重定向；我试了不行，最后查到的是，状态码也要进行对应的变化
+
+如果要进行重定向，状态码需要为301 or 302
+
+参考资料：[HTTP 状态码 | 菜鸟教程 (runoob.com)](https://www.runoob.com/http/http-status-codes.html)
+
+| 分类 | 分类描述                                       |
+| ---- | ---------------------------------------------- |
+| 1**  | 信息，服务器收到请求，需要请求者继续执行操作   |
+| 2**  | 成功，操作被成功接收并处理                     |
+| 3**  | 重定向，需要进一步的操作以完成请求             |
+| 4**  | 客户端错误，请求包含语法错误或无法完成请求     |
+| 5**  | 服务器错误，服务器在处理请求的过程中发生了错误 |
+
+## 遇到的困难（未解决）
+
+在下列代码第9行，我创建了缓冲流进行读取文件，在第26的方法中，我创建了缓冲流用于返回响应体
+
+在第13行的代码中，如果while中的循环条件为while((line = bufferedReader.readLine()) != null),bufferedWriter就无法给客户端正常返回，只有客户端完全断开连接才能发送出去，代码中已经进行了flush
+
+```java
+    public static void main(String[] args) throws IOException {
+        //服务器持续监听9090端口
+        ServerSocket serverSocket = new ServerSocket(9090);
+        while(true) {
+            try {
+                Socket httpSocket = serverSocket.accept();
+
+                //创建缓冲流进行读取文件
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpSocket.getInputStream()));
+                //创建StringBuilder类接收http请求内容
+                StringBuilder httpRequestContent = new StringBuilder();
+                String line = "";
+                while (!((line = bufferedReader.readLine()).isEmpty())) {//判断读取到的内容是否为空
+                    //将读取到的内容添加到httpRequestContent中
+                    httpRequestContent.append(line + '\n');//添加换行还原原始字符串
+                }
+                System.out.println(httpRequestContent.toString());
+
+                //创建Request对象，用于存放解析后的请求信息
+                Request request = new Request();
+                //解析请求行
+                decodeRequestLine(httpRequestContent, request);
+                //解析请求头
+                decodeRequestHeader(httpRequestContent, request);
+                //解析请求体
+                decodeRequestBody(httpRequestContent, request);
+
+                //生成响应体
+                generateResponse(request, httpSocket);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
