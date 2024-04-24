@@ -29,6 +29,9 @@ public class Main {
             decodeRequestHeader(httpRequestContent,request);
             //解析请求体
             decodeRequestBody(httpRequestContent,request);
+
+            //生成响应体
+            generateResponse(request);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -75,7 +78,7 @@ public class Main {
         System.out.println("请求行解析完成");
         System.out.println(request.getMethod()+" "+request.getUri()+" "+request.getHttpVersion());
     }
-//    //解析请求体
+    //解析请求体
     private static void decodeRequestBody(StringBuilder httpRcontent,Request request) throws IOException{
         //读取到请求体，以空行作为分割
         //请求体可能为空，也可能有数据
@@ -95,6 +98,25 @@ public class Main {
         System.out.println("请求体解析完成");
         System.out.println(request.getMessage());
     }//method end
+
+    //生成响应体
+    private static void generateResponse(Request request){
+         HashMap<String,String> responseHeaders = new HashMap<>(16);
+         responseHeaders.put("Content-Type","text/html");
+
+         Response response = new Response();
+         response.setHttpVersion(request.getHttpVersion());
+         response.setStatusCode("200");
+         response.setStatusMessage("OK");
+         response.setResponseHeaders(responseHeaders);
+         response.setResponseBody("Hello");
+         StringBuilder responseStr = new StringBuilder();
+         responseStr.append(response.getHttpVersion()+" "+response.getStatusCode()+" "+response.getStatusMessage()+"\n");
+         responseStr.append("Content-type"+":"+response.getResponseHeaders().get("Content-Type")+"\n\n");
+         responseStr.append(response.getResponseBody());
+        System.out.println("\n\n响应体生成完成");
+         System.out.println(responseStr.toString());
+    }
 }
 
 class Request{
@@ -153,5 +175,56 @@ class Request{
     public void setMessage(String message) {
         this.message = message;
     }
+
+}
+
+class Response{
+    private String httpVersion;//响应的http版本
+
+    public String getHttpVersion() {
+        return httpVersion;
+    }
+
+    public void setHttpVersion(String httpVersion) {
+        this.httpVersion = httpVersion;
+    }
+
+    private String statusCode;//响应的状态码
+    public String getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(String statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    private String statusMessage;//响应的状态消息
+    public String getStatusMessage() {
+        return statusMessage;
+    }
+
+    public void setStatusMessage(String statusMessage) {
+        this.statusMessage = statusMessage;
+    }
+
+    private HashMap<String,String> ResponseHeaders;//响应头
+    public HashMap<String, String> getResponseHeaders() {
+        return ResponseHeaders;
+    }
+
+    public void setResponseHeaders(HashMap<String, String> responseHeaders) {
+        this.ResponseHeaders = responseHeaders;
+    }
+
+    private String ResponseBody;//响应体
+    public String getResponseBody() {
+        return ResponseBody;
+    }
+
+    public void setResponseBody(String responseBody) {
+        this.ResponseBody = responseBody;
+    }
+
+
 
 }
