@@ -148,15 +148,75 @@ private static void decodeRequestHeader(StringBuilder httpRcontent,Request reque
     }
 ```
 
+# 在第五个版本我需要干什么？
+
+整体而言，代码有些混乱了，在这个版本我需要将路由做出来，所有我需要一个函数专门进行路由。除此之外，我还需要优化处理请求的函数
+
+程序整体分为两个部分，一个处理请求，二是返回响应；除此之外，还需要有一个用来返回错误的函数，用来校验请求体中的信息，并返回对应的响应体
+
+1. 处理请求
+
+   1. 处理请求行
+   2. 处理请求头
+   3. 处理请求体
+
+2. 返回响应
+
+   1. 校验请求行的内容（uri，method）
+      1. 路由转换
+   2. 生成响应头
+   3. 生成响应体
+
+   > 在2024年4月26 14:00左右完成
+   
+   
+
+# 积累
+
+## URI 和 URL 的区别
+
+> uniform: adj.完全一样的；不变的；同类的
+>
+> resource: n.资源
+>
+> identifier: n.鉴定人；鉴定物；标识符
+>
+> locator: n.（利用无线电信号工作的）定位器
+
+### URI（Uniform Resource Identifier）:统一资源标识符
+
+顾名思义，URI就是资源的标识符😂，URI是资源在服务器上唯一的标识，是相对地址
+
+| POST /some/path.html HTTP/1.1 | /some/path.html |
+| ----------------------------- | --------------- |
+
+上方 /some/path.html 就是URI
+
+### URL（Uniform Resource Locator）:统一资源定位符
+
+URL是对于整个网络来说的，URL是一个完整的链接，就是域名，是可以直接进行访问的
+
+## substring与lastIndexOf
+
+
+
+# 备忘录
+
+1. 响应时传输格式的属性
+2. HashMap的初始化方式（匿名函数初始化）
+3. git回滚操作
+4. GET请求响应JSON
+5. GET通过 url paramenters解析
+6. POST JSON+响应JSON
+7. GET请求图片
+8. POST请求
+9. FormData(主要用在上传文件)
 
 
 
 
 
-
-
-
-
+# 
 
 
 
