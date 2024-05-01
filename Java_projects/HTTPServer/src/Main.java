@@ -9,11 +9,12 @@ public class Main {
     private static final int PORT = 9090;
     private static final String[] METHODS = {"GET","POST","PUT","DELETE"};
     //定义状态码以及状态说明
-    private static final HashMap<String,String> STATUSCODE_AND_MESSAGE = new HashMap<String,String>(){{
+    private static final HashMap<String,String> STATUSCODE_AND_MESSAGE = new HashMap<>(){{
         put("200","OK");
         put("404","Not Found");
         put("500","Internal Server Error");
-        put("301","Found");//临时重定向
+        put("301","Found");
+        //临时重定向
         put("501","Not Implemented");
     }};
 
@@ -31,7 +32,7 @@ public class Main {
                 //返回响应体
                 returnResponse(generateResponse(request),httpSocket);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
     }
@@ -46,7 +47,7 @@ public class Main {
         //创建StringBuilder类接收http请求内容
         StringBuilder httpRequestContentStr = new StringBuilder();
 
-        String line = "";
+        String line;
 
 
         while ((line = bufferedReader.readLine()) != null) {//当能读取到数据时循环读取，直到读不到
@@ -58,12 +59,14 @@ public class Main {
         }
 
         //--test print
-        System.out.println("获取到的HTTP请求为："+httpRequestContentStr.toString());
+        System.out.println("获取到的HTTP请求为："+ httpRequestContentStr);
 
         //创建Request对象，用于存放解析后的请求信息
         Request request = new Request();
         //解析请求行
         decodeRequestLine(httpRequestContentStr, request);
+        //获取url parameters参数
+        parseUrlParameters(request);
         //解析请求头
         decodeRequestHeader(httpRequestContentStr, request);
         //解析请求体
@@ -157,6 +160,7 @@ public class Main {
     private static void returnResponse(StringBuilder responseStr,Socket socket) throws IOException {//参数：
 
         BufferedOutputStream WriterStreamToClient = new BufferedOutputStream(socket.getOutputStream());
+
         WriterStreamToClient.write(responseStr.toString().getBytes());
         WriterStreamToClient.flush();
         System.out.println("Sock为："+socket);
@@ -186,6 +190,7 @@ public class Main {
         //处理请求行是在处理什么？
         //1. 处理请求方法
         //2. 处理请求资源地址
+        //3. 处理url parameters
         //返回值判断请求行是否出错，true为出错，false为未出错
         boolean isExistMethod = false;//返回请求方法是否存在
         boolean isExistFile = false;//返回资源文件是否存在
@@ -225,7 +230,7 @@ public class Main {
     }//method end
 
     //4. 处理响应头
-    private static void handleResponseHeader(Request request,StringBuilder responseAll){
+    private static void handleResponseHeader(Request request, StringBuilder responseAll){
         //设置响应头属性
         String resourceNmae = request.getUri();//资源文件名
         //获取.最后出现的索引，并从这个索引取到最后，获取完整的文件类型名
@@ -234,6 +239,14 @@ public class Main {
         System.out.println("handleResponseHeader方法内获取到的文件后缀："+Types);
         File requestFile = new File(routerTransform(request.getUri()));//创建请求文件的File对象
         String FileSize = String.valueOf(requestFile.length());//获取文件大小
+        //TODO:这里为了临时测试所做，如果请求的地址有参数，就指定类型
+
+        if(request.getUrlParameters() != null){
+            responseAll.append("Content-Type:text/html;charset=UTF-8\n")
+            .append("Content-Length:application/json"+"\n").append("Connection:close\n");
+            return;
+         }
+
         //匹配请求文件类型，并返回Content-Type的值
         switch (Types) {
             case ".html" -> responseAll.append("Content-Type:text/html;charset=UTF-8\n")
@@ -262,24 +275,44 @@ public class Main {
                     .append("Content-Length:"+FileSize+"\n").append("Connection:close\n");
         }
 
-
     }
 
     //5. 处理响应体
     private static void handleResponseBody(Request request,StringBuilder responseAll){
+
         //读取文件的内容，使用字节缓冲流
         try {
-            responseAll.append("\n");
-            //使用字节流进行读取，因为这是文件
-            FileInputStream requestFile = new FileInputStream(routerTransform(request.getUri()));
-            BufferedInputStream buff_requestFile = new BufferedInputStream(requestFile);
+            //提取路径，区分有参和无参
+            FileInputStream requestFile = null;
 
-            int len;
-            byte[] FileConten = new byte[4096];
-            //读取文件的所有字节
-            while ((len = buff_requestFile.read(FileConten)) != -1){
-                responseAll.append(new String(FileConten,0,len));
+            //增加响应头和响应体之间的空行
+            responseAll.append("\n");
+            //url 参数不为空，返回json
+            if (request.getUrlParameters() != null){
+                HashMap<String,String> urlParametersRequest = request.getUrlParameters();
+                responseAll.append("{").append("\n");
+                //遍历所有的键
+                for(String key :urlParametersRequest.keySet()){
+                    responseAll.append(key+":"+urlParametersRequest.get(key))
+                            .append(",").append("\n");
+                }
+                responseAll.append("}\n");
+            }else {
+                //url参数为空，返回文文件
+                requestFile = new FileInputStream(routerTransform(request.getUri()));
+                //使用字节流进行读取，因为这是文件
+
+                BufferedInputStream buff_requestFile = new BufferedInputStream(requestFile);
+
+                int len;
+                byte[] FileConten = new byte[4096];
+                //读取文件的所有字节
+                while ((len = buff_requestFile.read(FileConten)) != -1){
+                    responseAll.append(new String(FileConten,0,len));
+                }
             }
+
+
             //--test print
             System.out.println("已处理完响应体，将文件字节全部写入暂存字符串");
         } catch (IOException e) {
@@ -300,6 +333,46 @@ public class Main {
         }else{
             return "./" +uri;
         }
+    }
+
+    // 2.解析url parameters
+    private static void parseUrlParameters(Request request){
+        //获取到URI进行解析
+        try{
+            String urlParametersStr = request.getUri();
+            String[] parametersItem;
+            HashMap<String,String> kv = new HashMap<>(16);
+
+            //解析出?之后的所有字符
+            urlParametersStr = urlParametersStr.split("\\?")[1];
+
+            //获取每一个参数的键值
+            parametersItem = urlParametersStr.split("&");
+            //循环插入临时的键值对
+            for(String item:parametersItem){
+                //根据 = 分割键和值
+                String[] p_item = item.split("=");
+                System.out.println("获取到的键值对："+Arrays.toString(p_item));
+                kv.put(p_item[0],p_item[1]);
+            }
+            //将所有参数键值对设置到request对象中
+            request.setUrlParamenters(kv);
+
+            //--test print
+            System.out.println("获取url参数"+request.getUrlParameters());
+            System.out.println("获取name的值"+request.getUrlParameters().get("name"));
+            //--test print
+            System.out.println("解析后的url parameters："+urlParametersStr);
+        } catch (Exception e){
+            System.out.println("无URL parameters");
+            e.printStackTrace();
+        }
+
+    }// method end
+
+    //临时的方法，用于接受url parameters返回JSON格式的parameters
+    private static void TempResponseJSON(Request request,StringBuilder responseAll){
+
     }
     //========================Tools end =================
 
@@ -322,6 +395,21 @@ class Request{
 
     //请求体
     private String message;
+
+    //Url paramenters
+    private HashMap <String,String> urlParamenters;
+
+    public HashMap<String, String> getUrlParameters() {
+        return urlParamenters;
+    }
+
+    public void setUrlParamenters(HashMap<String, String> urlParamenters) {
+        this.urlParamenters = urlParamenters;
+    }
+
+
+
+
 
 
     public String getMethod() {
