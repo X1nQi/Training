@@ -178,7 +178,7 @@ public class ParseRequest {
 
 
             //如果temp等于换行
-            if(temp.equals("\n")){//TODO:这地方能不能判断出请求头和请求体中的空行？有待测试
+            if(temp.equals("\r\n")){//TODO:这地方能不能判断出请求头和请求体中的空行？有待测试
                 isBody = !isBody;
             }
         }

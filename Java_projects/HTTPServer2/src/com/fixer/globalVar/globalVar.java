@@ -14,15 +14,16 @@ public abstract class globalVar {
     public static HashMap<String,String>  RESPONSE_FILE_TYPE;//静态变量，存放响应文件的类型
     static {
         RESPONSE_FILE_TYPE = new HashMap<>();
-        RESPONSE_FILE_TYPE.put(".html","Content-Type:text/html");
-        RESPONSE_FILE_TYPE.put(".css","Content-Type:text/css");
-        RESPONSE_FILE_TYPE.put(".js","Content-Type:application/javascript");
-        RESPONSE_FILE_TYPE.put(".png","Content-Type:image/png");
-        RESPONSE_FILE_TYPE.put(".jpg","Content-Type:image/jpeg");
-        RESPONSE_FILE_TYPE.put(".gif","Content-Type:image/gif");
-        RESPONSE_FILE_TYPE.put(".ico","Content-Type:image/x-icon");
-        RESPONSE_FILE_TYPE.put(".txt","Content-Type:text/plain");
-        RESPONSE_FILE_TYPE.put(".json","Content-Type:application/json");
+        RESPONSE_FILE_TYPE.put(".html","Content-Type: text/html");
+        RESPONSE_FILE_TYPE.put(".css","Content-Type: text/css");
+        RESPONSE_FILE_TYPE.put(".js","Content-Type: application/javascript");
+        RESPONSE_FILE_TYPE.put(".png","Content-Type: image/png");
+        RESPONSE_FILE_TYPE.put(".jpg","Content-Type: image/jpg");
+        RESPONSE_FILE_TYPE.put(".jpeg","Content-Type: image/jpeg");
+        RESPONSE_FILE_TYPE.put(".gif","Content-Type: image/gif");
+        RESPONSE_FILE_TYPE.put(".ico","Content-Type: image/x-icon");
+        RESPONSE_FILE_TYPE.put(".txt","Content-Type: text/plain");
+        RESPONSE_FILE_TYPE.put(".json","Content-Type: application/json");
     }
     public static String judgeFileType(String filePath){
         //返回文件类型

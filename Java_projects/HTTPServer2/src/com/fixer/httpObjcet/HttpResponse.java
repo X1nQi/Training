@@ -1,5 +1,5 @@
 package com.fixer.httpObjcet;
-import java.util.*;
+
 public class HttpResponse {
     //构造方法，初始化对象
     public HttpResponse(){
@@ -15,11 +15,18 @@ public class HttpResponse {
     private StringBuilder ResponseBody;//响应体
     private String[] ResponseStatusCode;//响应代码以及信息
 
+    private int FileLength;//文件长度
     private String FileType;//响应文件类型
+
+    private boolean isBinaryFile = false;//是否为二进制文件，并初始化为false
     //--------------属性 end-------------------
 
 
     //--------------getter start----------------------
+    public boolean getIsBinaryFile() {
+        return  this.isBinaryFile;
+    }
+    public int getFileLength(){ return  this.FileLength; }
     public String getFileType(){
         return this.FileType;
     }
@@ -43,12 +50,17 @@ public class HttpResponse {
     }
 
 
-    public StringBuilder getRequestBody() {
-        return ResponseBody;
+    public String getRequestBody() {
+        return this.ResponseBody.toString();
     }
     //--------------getter end----------------------
 
     //--------------setter start-------------------
+
+    public void setIsBinaryFile(boolean isBinary) {
+        this.isBinaryFile = isBinary;
+    }
+    public void setFileLength(int Flength){ this.FileLength = Flength; }
     public void setFileType(String fileType){
         this.FileType = fileType;
     }
@@ -65,8 +77,8 @@ public class HttpResponse {
     }
 
     public void setResponseHeaders(String responseHeaders) {
-        ResponseHeaders.append(responseHeaders);
-        this.ResponseHeaders.append("\n");
+        this.ResponseHeaders.append(responseHeaders);
+        this.ResponseHeaders.append("\r\n");
     }
 
     public void setResponseBody(String responseBody) {

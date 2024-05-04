@@ -2,10 +2,14 @@ package com.fixer.httpServer;
 
 import com.fixer.httpObjcet.HttpRequest;
 import com.fixer.httpObjcet.HttpResponse;
+import com.fixer.globalVar.globalVar;
 
 import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Base64;
 
 public class ParseResponse {
 
@@ -36,19 +40,21 @@ public class ParseResponse {
         responseString.append(" ");
         //填入状态码以及状态信息
         responseString.append(response.getResponseStatusCode()[0]+" "+response.getResponseStatusCode()[1]);
-        responseString.append("\n");
+        responseString.append("\r\n");
 
         //填入响应头
         responseString.append(response.getResponseHeaders());
         //空行分割
         responseString.append("\r\n");
+
+
         //填入响应体
-        responseString.append(response.getRequestBody());
+        //responseString.append(response.getRequestBody());
 
         System.out.println("响应标头--->"+response.getResponseHeaders());
         //发送响应至客户端
         try {
-            sendResponse(responseString,socket);
+            sendResponse(responseString,socket,response);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -57,18 +63,46 @@ public class ParseResponse {
 
 
     //解耦，负责发送响应的函数只接受字符串和socket即可
-    public static void sendResponse(StringBuilder response, Socket socket) throws IOException {
+    public static void sendResponse(StringBuilder response, Socket socket,HttpResponse responseObj) throws IOException {
         //*发送响应字符串
         System.out.println("开始向客户端发送响应字符串");
         String allResponseDate = response.toString();
-        //创建输出流
-        BufferedOutputStream sentToClient = new BufferedOutputStream(socket.getOutputStream());
 
+
+        BufferedOutputStream sentToClient = new BufferedOutputStream(socket.getOutputStream());
         //输出所有数据
         sentToClient.write(allResponseDate.getBytes());
-
+        //判断是否为二进制数据
+        if(responseObj.getIsBinaryFile()){
+            //DONE:getRequestBody 的返回类型需要改为String
+            byte[] decodeBytes = Base64.getDecoder().decode(responseObj.getRequestBody());
+            System.out.println("分析出二进制数据，进行解码后："+decodeBytes);
+            sentToClient.write(decodeBytes);
+        }else {
+            sentToClient.write(responseObj.getRequestBody().getBytes());
+            System.out.println("为非二进制数据");
+        }
+        sentToClient.flush();
         //关闭输出流
         sentToClient.close();
+
+
+
+
+        //关闭socket连接
+        socket.close();
+    }
+    public static void sendResponse(String errorCode,Socket socket) throws IOException {
+        //重构方法，用于发送错误信息
+        //TODO：写死的HTTP版本，日后想着怎么改吧
+        String responseString = "HTTP/1.1 "+errorCode+" "+globalVar.RESPONSE_STATUS_CODE.get(errorCode)+"\r\n"+"\r\n";
+
+        BufferedOutputStream sentToClient = new BufferedOutputStream(socket.getOutputStream());
+        sentToClient.write(responseString.getBytes());
+        sentToClient.flush();
+        sentToClient.close();
+        socket.close();
     }
 
-}
+
+}// Class end
