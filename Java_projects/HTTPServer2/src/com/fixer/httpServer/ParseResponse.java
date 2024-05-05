@@ -33,7 +33,7 @@ public class ParseResponse {
 
     public static StringBuilder generateResponse(HttpResponse response,Socket socket){
         //*生成响应字符串
-        System.out.println("生成了响应字符串");
+        System.out.println("-->生成了响应字符串");
         StringBuilder responseString = new StringBuilder();
         //填入HTTP版本
         responseString.append(response.getHttpVersion());
@@ -81,6 +81,7 @@ public class ParseResponse {
         }else {
             sentToClient.write(responseObj.getRequestBody().getBytes());
             System.out.println("为非二进制数据");
+            System.out.println("响应体为："+responseObj.getRequestBody());
         }
         sentToClient.flush();
         //关闭输出流
@@ -90,10 +91,11 @@ public class ParseResponse {
 
 
         //关闭socket连接
+        System.out.println("》》关闭socket连接《《");
         socket.close();
     }
     public static void sendResponse(String errorCode,Socket socket) throws IOException {
-        //重构方法，用于发送错误信息
+        //ERROR METHOD: 重构方法，用于发送错误信息
         //TODO：写死的HTTP版本，日后想着怎么改吧
         String responseString = "HTTP/1.1 "+errorCode+" "+globalVar.RESPONSE_STATUS_CODE.get(errorCode)+"\r\n"+"\r\n";
 

@@ -24,6 +24,8 @@ public abstract class globalVar {
         RESPONSE_FILE_TYPE.put(".ico","Content-Type: image/x-icon");
         RESPONSE_FILE_TYPE.put(".txt","Content-Type: text/plain");
         RESPONSE_FILE_TYPE.put(".json","Content-Type: application/json");
+        RESPONSE_FILE_TYPE.put(".mp3","Content-Type: audio/mp3");
+
     }
     public static String judgeFileType(String filePath){
         //返回文件类型

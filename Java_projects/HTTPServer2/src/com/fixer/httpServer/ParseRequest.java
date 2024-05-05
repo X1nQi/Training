@@ -38,20 +38,16 @@ public class ParseRequest {
         BufferedReader inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
         String line;
-        while((line = inputStream.readLine()) != null){
-            if(line.equals("")){
-                System.out.println("已读取全部请求");
-                break;
-            }else {
+        while( (line = inputStream.readLine()) != null){
+            if (line.equals("")){break;}
                 request.appendAllRequestStr(line);
                 request.appendAllRequestStr("\n");
-            }
         }
-
+        System.out.println("-->读取到的请求内容为："+request.getAllRequestStr());
         //----解析请求 start----------
         decodeRequestLine(request);
         decodeRequestHeader(request);
-        decodeRequestBody(request);
+        decodeRequestBody(request,inputStream);
         //----解析请求 end----------
 
         /*
@@ -126,6 +122,7 @@ public class ParseRequest {
             System.out.println("处理请求行结束");
             System.out.println(kv);
 
+
         }
         //DONE:处理资源路径
         String uri = request.getUri();
@@ -148,7 +145,7 @@ public class ParseRequest {
         // 分离第一行，即请求行，一直读取到空行
         for(int i = 0;i<allRequestStrArr.length;i++){
             if(i == 0){continue;};
-            //TODO:这地方能不能判断出请求头和请求体中的空行？有待测试
+
             if(allRequestStrArr[i].equals("")){break;};
             //向键值对添加东西
              kv.put(allRequestStrArr[i].split(":")[0],allRequestStrArr[i].split(":")[1]);
@@ -159,32 +156,21 @@ public class ParseRequest {
     }
 
     //处理请求体
-    private void decodeRequestBody(HttpRequest request){
+    private void decodeRequestBody(HttpRequest request,BufferedReader readbody) throws IOException {
         System.out.println("处理请求体开始");
-
-        //获取读取到的全部字符串
-        String requestAllStr = request.getAllRequestStr();
-
-        String[] allRequestStrArr = requestAllStr.split("\n");
-        StringBuilder requestBody = new StringBuilder();
-        boolean isBody = false;
-        for(String temp : allRequestStrArr){
-            //去空
-            //temp =temp.trim();
-
-            if(isBody){
-                requestBody.append(temp);
-            }
-
-
-            //如果temp等于换行
-            if(temp.equals("\r\n")){//TODO:这地方能不能判断出请求头和请求体中的空行？有待测试
-                isBody = !isBody;
-            }
+        System.out.println("-->content-length为:"+request.getRequestHeaders().get("Content-Length"));
+        String contentLength = request.getRequestHeaders().get("Content-Length");
+        if(contentLength != null){
+            //有请求体
+            char[] body = new char[46];
+            readbody.read(body);
+            request.setRequestBody(new String(body));
+            System.out.println("-->请求体为："+request.getRequestBody());
+        }else{
+            //无请求体
+            return;
         }
-        request.setRequestBody(requestBody.toString());
-        System.out.println("处理请求体开始");
-        System.out.println("请求体为"+(requestBody.toString()));
+        System.out.println("处理请求体结束");
     }
 
 

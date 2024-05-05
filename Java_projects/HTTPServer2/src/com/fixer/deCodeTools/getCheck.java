@@ -28,9 +28,9 @@ public class getCheck implements MethodCheck{
             System.out.println("uri的资源存在");
             //--获取到文件的长度,设置到response对象中
             response.setFileLength((int)uriFile.length());
-            //--获取并设置文件长度
+            //--判断并设置响应头中文件长度
             response.setResponseHeaders("Content-Length: "+response.getFileLength());
-            //--判断并设置响应头
+            //--判断并设置响应头中文件类型
             response.setResponseHeaders(globalVar.judgeFileType(request.getUri()));//使用request的URI，response的uri没有设置
 
             //--判断是否为二进制文件
