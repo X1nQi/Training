@@ -7,6 +7,7 @@ import com.fixer.httpObjcet.HttpResponse;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.util.Arrays;
@@ -25,7 +26,9 @@ public class ParseRequest {
     5.请求体
     所以这个类的构造方法接受一个HttpRequest对象作为参数，并在构造方法中完成对HttpRequest对象的解析
  */
-    public ParseRequest(HttpRequest request, Socket socket) throws IOException {
+    public ParseRequest(Socket socket) throws IOException {
+        //创建请求对象
+        HttpRequest request = new HttpRequest();
         /*
 
         构造方法
@@ -73,7 +76,7 @@ public class ParseRequest {
             //有参数
             System.out.println("有参数传递");
             switch (request.getMethod().toUpperCase()){
-                case "GET" -> getCheck.existParametersCheck(response);
+                case "GET" -> getCheck.existParametersCheck(request,response,socket);
                 case  "POST" -> postCheck.existParametersCheck(response);
                 default -> {return;}
             }
@@ -95,6 +98,7 @@ public class ParseRequest {
         System.out.println("处理请求行开始");
         //*分离第一行，取出请求方法  请求路径  请求HTTP版本号
         String requestLine = (request.getAllRequestStr().split("\n"))[0];
+        System.out.println("-->请求行内容为："+requestLine);
         String[] requestLineArr = requestLine.split(" ");
         request.setMethod(requestLineArr[0]);
         request.setUri(requestLineArr[1]);
@@ -153,6 +157,8 @@ public class ParseRequest {
         //设置到request对象中
         request.setRequestHeaders(kv);
         System.out.println(request.getRequestHeaders());
+
+        System.out.println("处理请求头结束");
     }
 
     //处理请求体

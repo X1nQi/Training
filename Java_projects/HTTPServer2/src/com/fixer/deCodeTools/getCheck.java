@@ -7,6 +7,8 @@ import com.fixer.httpServer.ParseResponse;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 public class getCheck implements MethodCheck{
@@ -15,8 +17,27 @@ public class getCheck implements MethodCheck{
     私有化构造方法，防止实例化
      */
     private getCheck(){};
-    public static void existParametersCheck(HttpResponse response) {
-        System.out.println("处理了存在参数的GET请求");
+    public static void existParametersCheck(HttpRequest request,HttpResponse response,Socket socket) throws UnsupportedEncodingException {
+        System.out.println("开始处理存在参数的GET请求");
+        System.out.println("---->参数："+request.getRequestParameters());
+        //设置响应头
+        response.setResponseHeaders("Content-Type: application/json;charset=utf-8");
+        // 设置状态码
+        String[] code_message = new String[]{"200", globalVar.RESPONSE_STATUS_CODE.get("200")};
+        response.setResponseStatusCode(code_message);
+
+        //TODO:生成JSON并相应,未使用json工具，使用字符串进行模拟
+
+        //向 response 设置响应体
+        response.setResponseBody("{\n");
+        //生成JSON格式字符串
+        for (String key: request.getRequestParameters().keySet()){
+            response.setResponseBody("\""+key+"\":\""+request.getRequestParameters().get(key)+"\",\n");
+
+        }
+        response.setResponseBody("}");
+
+        ParseResponse.generateResponse(response,socket);
 
     }
 

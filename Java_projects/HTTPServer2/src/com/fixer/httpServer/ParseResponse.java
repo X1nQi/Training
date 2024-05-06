@@ -84,14 +84,11 @@ public class ParseResponse {
             System.out.println("响应体为："+responseObj.getRequestBody());
         }
         sentToClient.flush();
-        //关闭输出流
-        sentToClient.close();
-
-
-
 
         //关闭socket连接
         System.out.println("》》关闭socket连接《《");
+        //关闭输出流
+        sentToClient.close();
         socket.close();
     }
     public static void sendResponse(String errorCode,Socket socket) throws IOException {
