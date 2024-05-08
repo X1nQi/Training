@@ -3,6 +3,8 @@ package com.fixer.globalVar;
 import java.util.HashMap;
 
 public abstract class globalVar {
+    public static String RedirectURL = "./resources";
+    public static String UploadURL = "./upload/";
     public static String[] REQUEST_METHODS ={"GET","POST"}; //静态变量，存放服务器支持的请求方法
     public static HashMap<String,String> RESPONSE_STATUS_CODE;//静态变量，存放响应状态码和响应状态码对应的描述
     static {

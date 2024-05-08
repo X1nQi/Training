@@ -35,3 +35,127 @@
 
 # Version 3.0
 
+> 2024年5月8日14:47:01完成
+
+1. 实现了GET请求文件：二进制文件目前只支持图片
+2. 实现了GET有参数请求：通过模拟json字符串，将参数的键值以json的形式返回给客户端
+3. 实现了POST JSON:通过模拟json字符串，将参数的键值以json的形式返回给客户端
+4. 实现了POST form-data上传文件：目前仅能上传纯文本文件，上传至`./upload`文件夹下
+
+## 下个版本要做的事情
+
+1. 实现POST form-data上传二进制文件
+2. 实现GET请求其他二进制文件
+
+# 遇到的问题以及如何解决
+
+1. URL中含有中文的时候，java读取到的是乱码
+
+   1. > URL 只支持ASCII传输，在遇到中文时会转码，想要读取到原中文就要进行解码
+      >
+      > ```java
+      > import java.net.URLEncoder;
+      > import java.net.URLDecoder;
+      > 
+      > 编码
+      > URLEncoder.encode( URL, "UTF-8" )
+      > 
+      > 解码
+      > URLEncoder.decode( URL, "UTF-8" )  
+      > ```
+      >
+      > 
+      >
+      > [Url 编码/解码 - 在线工具 (toolhelper.cn)](https://www.toolhelper.cn/EncodeDecode/Url?type=2)
+
+2. 使用`Integer.parseInt(str)`进行强制类型转换时报错
+   1. 极大可能是字符串中含有空格，对str调用trim()方法去除空格
+3. 
+
+# 参考资料
+
+[java - Jackson 解析 JSON 详细教程 - 未读代码 - SegmentFault 思否](https://segmentfault.com/a/1190000042206324)
+
+# 正则
+
+`.` ：匹配任意字符，包括特殊符号和空格
+
+`[]`：可选字符集，例如`b[abe]r`可以匹配出`bar、bbr、ber`
+
+[^]：否定字符集,例如`b[^eo]r`,代表匹配除了`ber`和`bor`以外的所有`b*r`
+
+## 重复
+
+`+`、`?`、`*`：这三种符号代表重复
+
+*：加在字符后面，代表完全不匹配或者匹配一次或多次，例如`be*r`可以匹配到`br、ber、beer、beeer`
+
++：接着字符后面，代表匹配一次或者多次，例如`be+r`可以匹配`ber、beer`，但是绝对不可能匹配到`br`
+
+？：加在字符后面，代表这个字符是可选的，可有可无，例如`beo?r`可以匹配出`beor`和`ber`
+
+{n}：加在字符后面，代表这个字符只能出现n次，例如`be{2}r`,只会匹配到`beer`
+
+{n,}：加在字符后面，代表这个字符至少出现n次，例如`be{2,}r`,`beer、beeer`都会被匹配到
+
+{n,m}：加在字符后面，代表这个字符出现的次数在n-m范围内
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+人因梦想而伟大，又因坚持梦想而成长

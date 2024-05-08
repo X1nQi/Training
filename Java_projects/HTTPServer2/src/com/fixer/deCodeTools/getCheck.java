@@ -5,6 +5,7 @@ import com.fixer.httpObjcet.HttpRequest;
 import com.fixer.httpObjcet.HttpResponse;
 import com.fixer.httpServer.ParseResponse;
 
+import java.net.URLDecoder;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.Charset;
@@ -32,10 +33,13 @@ public class getCheck implements MethodCheck{
         response.setResponseBody("{\n");
         //生成JSON格式字符串
         for (String key: request.getRequestParameters().keySet()){
-            response.setResponseBody("\""+key+"\":\""+request.getRequestParameters().get(key)+"\",\n");
+            String temp = URLDecoder.decode(request.getRequestParameters().get(key),"UTF-8");
+            response.setResponseBody("  \""+key+"\":\""+temp+"\",\n");
 
+            System.out.println("URL转码后："+temp);
         }
         response.setResponseBody("}");
+
 
         ParseResponse.generateResponse(response,socket);
 
@@ -106,7 +110,7 @@ public class getCheck implements MethodCheck{
         }else {
             //TODO:这里应该响应未找到异常
             System.out.println("uri的资源不存在！！");
-            ParseResponse.sendResponse("404",socket);
+            ParseResponse.sendResponse(response,"404",socket);
         }
         System.out.println("处理了不存在参数的GET请求");
     }

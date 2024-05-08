@@ -2,9 +2,11 @@ package com.fixer.httpServer;
 
 import com.fixer.deCodeTools.getCheck;
 import com.fixer.deCodeTools.postCheck;
+import com.fixer.globalVar.globalVar;
 import com.fixer.httpObjcet.HttpRequest;
 import com.fixer.httpObjcet.HttpResponse;
 
+import java.net.URLDecoder;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -128,13 +130,16 @@ public class ParseRequest {
 
 
         }
-        //DONE:处理资源路径
+        /*
+        DONE:处理资源路径
+         */
         String uri = request.getUri();
         if(uri.equals("/") || uri.equals("/index.html") || uri.equals("/index")){
-            request.setUri("./index.html");
+            request.setUri(RedirectURL+"/index.html");
             System.out.println("资源路径为"+request.getUri());
         }else {
-            request.setUri("."+uri);
+            request.setUri(RedirectURL+uri);
+            System.out.println("资源路径为"+request.getUri());
         }
     }
 
@@ -166,9 +171,14 @@ public class ParseRequest {
         System.out.println("处理请求体开始");
         System.out.println("-->content-length为:"+request.getRequestHeaders().get("Content-Length"));
         String contentLength = request.getRequestHeaders().get("Content-Length");
+
+        //Bodylength为body的长度，使用trim进行去空
+
         if(contentLength != null){
             //有请求体
-            char[] body = new char[46];
+            int Bodylength = Integer.parseInt(contentLength.trim());
+
+            char[] body = new char[Bodylength];
             readbody.read(body);
             request.setRequestBody(new String(body));
             System.out.println("-->请求体为："+request.getRequestBody());

@@ -9,6 +9,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 public class ParseResponse {
@@ -91,13 +93,18 @@ public class ParseResponse {
         sentToClient.close();
         socket.close();
     }
-    public static void sendResponse(String errorCode,Socket socket) throws IOException {
-        //ERROR METHOD: 重构方法，用于发送错误信息
+    public static void sendResponse(HttpResponse response,String Code,Socket socket) throws IOException {
+        //METHOD: 重构方法，用于不生成响应，直接返回响应的情况
         //TODO：写死的HTTP版本，日后想着怎么改吧
-        String responseString = "HTTP/1.1 "+errorCode+" "+globalVar.RESPONSE_STATUS_CODE.get(errorCode)+"\r\n"+"\r\n";
+        String responseLine = "HTTP/1.1 "+Code+" "+globalVar.RESPONSE_STATUS_CODE.get(Code)+"\r\n";
+        String responseHead = response.getResponseHeaders()+"\n".toString();
+        String responseBody = response.getRequestBody().toString();
 
         BufferedOutputStream sentToClient = new BufferedOutputStream(socket.getOutputStream());
-        sentToClient.write(responseString.getBytes());
+        sentToClient.write(responseLine.getBytes());
+        sentToClient.write(responseHead.getBytes());
+        sentToClient.write(responseBody.getBytes(StandardCharsets.UTF_8));
+
         sentToClient.flush();
         sentToClient.close();
         socket.close();
