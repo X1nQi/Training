@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 绑定一个mapper/DAO 接口，这俩其实是一个意识，都是分离了业务逻辑和数据访问逻辑-->
+<mapper namespace="top.fixer.dao.usertableDAO">
+<!--    执行查询，id对应这这个接口内的方法，标签内包裹的就是具体的sql语句，相当于重写这个接口内的方法-->
+<!--    resultTyope 写的是返回的pojo-->
+    <select resultType="top.fixer.pojo.usertable" id="getUsertableList">
+        select * from usertable
+    </select>
+
+    <select resultType="string" id="getUserforname">
+        select name from usertable where name =#{name}
+    </select>
+
+    <insert id="insertUser">
+        insert into usertable(pid,name,age) values (#{pid},#{name},#{age})
+    </insert>
+</mapper>
+

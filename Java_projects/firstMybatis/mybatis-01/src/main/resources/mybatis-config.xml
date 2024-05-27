@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!--配置-->
+<configuration>
+<!--    引入db.properties 外部配置文件-->
+<!--    <properties resource="db.properties">-->
+<!--    </properties>-->
+<!--第二种方式引入-->
+    <properties>
+        <property name="driver" value="org.postgresql.Driver"/>
+        <property name="url" value="jdbc:postgresql://localhost:5432/mybatisdb"/>
+        <property name="username" value="postgres"/>
+        <property name="password" value="p1455666"/>
+    </properties>
+
+<!--    类型别名-->
+<!--    <typeAliases>-->
+<!--&lt;!&ndash;        <typeAlias type="top.fixer.dao.usertableDAO" alias="userDAO"/>&ndash;&gt;-->
+<!--        <package name="top.fixer.dao"/>-->
+<!--    </typeAliases>-->
+<!--    环境-->
+    <environments default="development">
+        <environment id="development">
+<!--            事务管理方式-->
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${driver}"/>
+                <property name="url" value="${url}"/>
+                <property name="username" value="${username}"/>
+                <property name="password" value="${password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="top/fixer/dao/UsertableMapper.xml"/>
+        <mapper resource="top/fixer/dao/useraddressMapper.xml"/>
+        <mapper resource="top/fixer/dao/testMapper.xml"/>
+        <mapper resource="top/fixer/dao/anyParmeters.xml"/>
+    </mappers>
+</configuration>

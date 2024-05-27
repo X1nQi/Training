@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>下载文件</title>
+</head>
+<body>
+    <a href="/resources/test.txt">文本文件</a>
+    <a href="/resources/test.mp3">音频文件</a>
+    <a href="/resources/logo.png">图片文件</a>
+    <br><br>
+    <a href="/resources/logo.png" download>下载图片文件</a>
+    <a href="/resources/logo.png" download="这是图片">重命名下载图片文件</a>
+
+    <hr>
+
+    <form action="/downloadservlet">
+        文件：<input type="text" name="filename" placeholder="请输入文件名">
+            <button>下载</button>
+    </form>
+</body>
+</html>
